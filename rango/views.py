@@ -2,6 +2,10 @@ from django.shortcuts import render
 
 from django.http import HttpResponse
 
+# Import the Category model
+from rango.models import Category
+
+# index() function is responsible for the main page view.
 def index(request):
     # Construct a dictionary to pass to the template engine as its context.
     # Note the key boldmessage matches to {{ boldmessage }} in the template!
