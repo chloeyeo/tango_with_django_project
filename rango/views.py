@@ -32,7 +32,7 @@ def index(request):
     # Render the response and send it back!
     # The dictionary context_dict is passed as part of the context for the
     # template engine in the render() call.
-    return render(request, 'rango/index.html', context=context_dict)
+    return render(request, "rango/index.html", context=context_dict)
 
     # Note that the first parameter, request, of render function
     # is the template we wish to use.
@@ -78,7 +78,7 @@ def show_category(request, category_name_slug):
 
     # Render the response (render everything together using category.html template)
     # and return the response object (HttpResponse) to the client.
-    return render(request, 'rango/category.html', context=context_dict)
+    return render(request, "rango/category.html", context=context_dict)
 
 def add_category(request):
     form = CategoryForm()
@@ -93,7 +93,7 @@ def add_category(request):
             form.save(commit=True)
             # Now that the category is saved, we could confirm this.
             # For now, just redirect the user back to the index view.
-            return redirect('/rango/')
+            return redirect("{% url 'rango:index' %}")
         else:
             # The supplied form contained errors -
             # just print them to the terminal.
@@ -101,7 +101,7 @@ def add_category(request):
             
     # This will handle the bad form, new form, or no form supplied cases.
     # Render the form with error messages (if any).
-    return render(request, 'rango/add_category.html', {'form': form})
+    return render(request, "rango/add_category.html", {'form': form})
 
 def add_page(request, category_name_slug):
     try:
@@ -111,7 +111,7 @@ def add_page(request, category_name_slug):
 
     # You cannot add a page to a Category that does not exist...
     if category is None:
-        return redirect('/rango/')
+        return redirect("{% url 'rango:index' %}")
 
     form = PageForm()
 
@@ -132,4 +132,4 @@ def add_page(request, category_name_slug):
             print(form.errors)
 
     context_dict = {'form': form, 'category': category}
-    return render(request, 'rango/add_page.html', context=context_dict)
+    return render(request, "rango/add_page.html", context=context_dict)
