@@ -12,7 +12,12 @@
 {% block body_block %}
     {% if category %}
     <h1>{{ category.name }}</h1>
-    {% if pages %}
+	<ul>
+	{% if user.is_authenticated %}
+	    <li><a href="{% url 'rango:add_page' category.slug %}">Add Page</a> <br /></li>
+	{% endif %}
+    </ul>
+	{% if pages %}
     <ul>
         {% for page in pages %}
         <li><a href="{{ page.url }}">{{ page.title }}</a></li>
@@ -21,8 +26,6 @@
     {% else %}
     <strong>No pages currently in category.</strong>
     {% endif %}
-
-    <a href="{% url 'rango:add_page' category.slug %}">Add Page</a> <br />
     {% else %}
     The specified category does not exist.
     {% endif %}
