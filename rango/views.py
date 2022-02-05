@@ -15,15 +15,11 @@ from django.urls import reverse
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 
+from datetime import datetime
+
 # index() function is responsible for the main page view.
 def index(request):
-    # Query the database for a list of ALL categories currently stored.
-    # Category.objects returns this 'list', which can be ordered.
-    # Order the categories by the number of likes in descending order.
-    # The - in -likes denotes descending order; without - it is ascending order.
-    # Retrieve the top 5 only -- or all if less than 5.
-    # Place the list in our context_dict dictionary (With our boldmessage!)
-    # that will be passed to the template engine.
+    
     category_list = Category.objects.order_by('-likes')[:5]
     page_list = Page.objects.order_by('-views')[:5]
 
@@ -32,21 +28,20 @@ def index(request):
     context_dict['categories'] = category_list
     context_dict['pages'] = page_list
 
-    # Render the response and send it back!
-    # The dictionary context_dict is passed as part of the context for the
-    # template engine in the render() call.
-    return render(request, "rango/index.html", context=context_dict)
-
-    # Note that the first parameter, request, of render function
-    # is the template we wish to use.
-    # The render function takes as input user's request, the template filename,
-    # and the context dictionary; then combine these data together with the template
-    # to produce a complete HTML page that is returned with a HttpResponse.
-    # This response is then returned and dispatched to the user's web browser.
+    response = render(request, 'rango/index.html', context=context_dict)
+    visitor_cookie_handler(request, response)
+    
+    return response
 
 def about(request):
-    context_dict = {"boldmessage": "This tutorial has been put together by Chloe Yeo."}
-    return render(request, "rango/about.html", context=context_dict)
+    
+    context_dict = {'boldmessage': 'This tutorial has been put together by Chloe Yeo.'}
+    response = render(request, 'rango/about.html', context=context_dict)
+    visitor_cookie_handler(request, response)
+    context_dict['visits'] = request.session['visits']
+    response = render(request, 'rango/about.html', context=context_dict)
+    
+    return response
 
 # our new view, show_category()
 
@@ -259,3 +254,33 @@ def user_logout(request):
     logout(request)
     # Take the user back to the homepage.
     return redirect(reverse('rango:index'))
+
+# A helper method
+def get_server_side_cookie(request, cookie, default_val=None):
+    val = request.session.get(cookie)
+    if not val:
+        val = default_val
+    return val
+
+# This isn't a view as it doesn't return a response object -
+# it's just a helper function.
+def visitor_cookie_handler(request, response):
+    
+    visits = int(get_server_side_cookie(request, 'visits', '1'))
+    last_visit_cookie = get_server_side_cookie(request, 'last_visit',
+                                               str(datetime.now()))
+    last_visit_time = datetime.strptime(last_visit_cookie[:-7],
+                                         '%Y-%m-%d %H:%M:%S')
+
+    # If it's been more than a day since the last visit...
+    if (datetime.now() - last_visit_time).days > 0:
+        visits = visits + 1
+        # Update the last visit cookie now that we have updated the count
+        request.session['last_visit'] = str(datetime.now())
+
+    else:
+        # Set the last visit cookie
+        request.session['last_visit'] = last_visit_cookie
+
+    # Update/set the visits cookie
+    request.session['visits'] = visits
